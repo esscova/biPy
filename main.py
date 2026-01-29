@@ -18,11 +18,11 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # --- CONFIGURACAO LLM
-SYSTEM_PROMPT='Você é um assistente útil.'
 groq_api_key=''
 model = ''
 temperatura=1.0
 client = None
+SYSTEM_PROMPT='Você é um assistente útil especializado em Python.'
 LLM_MODELOS = [
     'llama-3.1-8b-instant',
     'llama-3.3-70b-versatile',
@@ -32,6 +32,23 @@ LLM_MODELOS = [
     'openai/gpt-oss-120b',
     'qwen/qwen3-32b'
 ]
+# --- FUNCOES AUXILIARES
+def validar_api_key(key):
+    """
+    Valida formato básico da API key da Groq.
+    Groq keys começam com 'gsk_' e têm ~56 caracteres.
+    """
+    if not key:
+        return False, "API key não pode estar vazia."
+    
+    if not key.startswith('gsk_'):
+        return False, "API key da Groq deve começar com 'gsk_'"
+    
+    if len(key) < 50:
+        return False, "API key parece muito curta. Verifique se copiou corretamente."
+    
+    return True, "API key válida."
+
 
 # --- SIDEBAR
 with st.sidebar:
@@ -59,15 +76,24 @@ with st.sidebar:
         value=0.7
     )
 
+    if groq_api_key:
+        valida, mensagem = validar_api_key(groq_api_key)
+        if valida:
+            st.success(f'{mensagem}')
+        else:
+            st.error(mensagem)
+
+
 # --- INICIALIZAR CLIENT COM API
 if groq_api_key:
-    try:
-        client = Groq(api_key=groq_api_key)
-    except Exception as e:
-        st.sidebar.error(f'Erro ao inicializar o cliente Groq: {e}')
-        st.stop()
-elif st.session_state.messages:
-    st.warning('Por favor insira sua API KEY da Groq.')
+    valida, _ = validar_api_key(groq_api_key)
+    if valida:
+        try:
+            client = Groq(api_key=groq_api_key)
+        except Exception as e:
+            st.sidebar.error(f'Erro ao inicializar o cliente Groq: {e}')
+            st.stop()
+
 
 # --- INTERFACE PRINCIPAL
 st.title('OPA')
