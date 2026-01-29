@@ -19,11 +19,11 @@ if "messages" not in st.session_state:
 
 # --- CONFIGURACAO LLM
 SYSTEM_PROMPT='Você é um assistente útil.'
-GROQ_API_KEY=''
-MODEL = ''
-TEMPERATURA=1.0
-CLIENT = None
-MODELOS = [
+groq_api_key=''
+model = ''
+temperatura=1.0
+client = None
+LLM_MODELOS = [
     'llama-3.1-8b-instant',
     'llama-3.3-70b-versatile',
     'meta-llama/llama-4-maverick-17b-128e-instruct',
@@ -38,20 +38,20 @@ with st.sidebar:
     st.title('⚙️ Configurações')
     st.markdown('---')
 
-    GROQ_API_KEY = st.text_input(
+    groq_api_key = st.text_input(
         label='Insira sua API KEY da Groq',
         type='password',
-        help='Obtenha sua chave m https://console.groq.com/keys'
+        help='Obtenha sua chave em https://console.groq.com/keys'
     )
 
-    MODEL = st.selectbox(
+    model = st.selectbox(
         label='Selecione seu modelo',
-        options=MODELOS,
+        options=LLM_MODELOS,
         index=0,
         help='Consulte detalhes em https://console.groq.com/docs/models'
     )
 
-    TEMPERATURA = st.slider(
+    temperatura = st.slider(
         label='Temperatura',
         min_value=0.1,
         max_value=1.0,
@@ -60,9 +60,9 @@ with st.sidebar:
     )
 
 # --- INICIALIZAR CLIENT COM API
-if GROQ_API_KEY:
+if groq_api_key:
     try:
-        CLIENT = Groq(api_key=GROQ_API_KEY)
+        client = Groq(api_key=groq_api_key)
     except Exception as e:
         st.sidebar.error(f'Erro ao inicializar o cliente Groq: {e}')
         st.stop()
@@ -79,15 +79,15 @@ for message in st.session_state.messages:
         st.markdown(message['content'])
 
 if prompt := st.chat_input("Digite sua mensagem ..."):
-    if not CLIENT:
+    if not client:
         st.warning("Por favor, insira a API KEY na barra lateral.")
         st.stop()
-    if not MODEL:
+    if not model:
         st.warning("Por favor, defina o modelo na barra lateral.")
         st.stop()
     
     st.session_state.messages.append({
-        'role':'system',
+        'role':'user',
         'content':prompt
     })
     with st.chat_message('user'):
@@ -101,10 +101,10 @@ if prompt := st.chat_input("Digite sua mensagem ..."):
     with st.chat_message("assistant"):
         with st.spinner('Pensando...'):
             try:
-                chat = CLIENT.chat.completions.create(
+                chat = client.chat.completions.create(
                     messages=messages_payload,
-                    model=MODEL,
-                    temperature=TEMPERATURA
+                    model=model,
+                    temperature=temperatura
                 )
                 response = chat.choices[0].message.content
                 st.markdown(response)
