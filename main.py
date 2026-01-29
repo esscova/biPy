@@ -23,6 +23,15 @@ GROQ_API_KEY=''
 MODEL = ''
 TEMPERATURA=1.0
 CLIENT = None
+MODELOS = [
+    'llama-3.1-8b-instant',
+    'llama-3.3-70b-versatile',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
+    'moonshotai/kimi-k2-instruct',
+    'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
+    'qwen/qwen3-32b'
+]
 
 # --- SIDEBAR
 with st.sidebar:
@@ -35,12 +44,11 @@ with st.sidebar:
         help='Obtenha sua chave m https://console.groq.com/keys'
     )
 
-    MODEL = st.text_input(
+    MODEL = st.selectbox(
         label='Selecione seu modelo',
-        placeholder='Ex.llama-3.1-8b-instant',
-        value='llama-3.1-8b-instant',
-        type='default',
-        help='Consulte modelos em https://console.groq.com/docs/rate-limits'
+        options=MODELOS,
+        index=0,
+        help='Consulte detalhes em https://console.groq.com/docs/models'
     )
 
     TEMPERATURA = st.slider(
