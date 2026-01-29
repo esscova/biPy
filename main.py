@@ -4,7 +4,7 @@ APLICACAO WEB - CHATBOT COM GROQ E STREAMLIT
 
 # --- IMPORTS
 import streamlit as st
-from groq import Groq
+from groq import Groq, AuthenticationError, APIConnectionError, RateLimitError
 
 # --- CONFIGURACAO STREAMLIT
 st.set_page_config(
@@ -104,6 +104,15 @@ if prompt := st.chat_input("Digite sua mensagem ..."):
                     'role':'assistant',
                     'content': response
                 })
+            except AuthenticationError:
+                st.error('Erro de Autenticação, sua API key é inválida ou expirou. Verifique a chave inserida na barra lateral.')
+                st.stop()
+            except RateLimitError:
+                st.error('Você atingiu o limite de mensagens gratuitas.')
+                st.stop()
+            except APIConnectionError:
+                st.error('Falha na conexão com o servidor Groq.')
+                st.stop()
             except Exception as e:
                 st.error(f'Erro na API: {e}')
             
