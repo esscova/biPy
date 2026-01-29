@@ -73,8 +73,17 @@ with st.sidebar:
         min_value=0.1,
         max_value=1.0,
         step=0.1,
-        value=0.7
+        value=0.7,
+        help='Valores baixos: respostas mais focadas. Valores altos: mais criativas.'
     )
+
+    st.markdown('---')
+    if st.button('🗑️ Limpar Conversa', use_container_width=True):
+        st.session_state.messages=[]
+        st.rerun()
+
+    st.markdown('---')
+    st.caption(f'💬 Mensagens no histórico: {len(st.session_state.messages)}')
 
     if groq_api_key:
         valida, mensagem = validar_api_key(groq_api_key)
