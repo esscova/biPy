@@ -49,6 +49,45 @@ def validar_api_key(key):
     
     return True, "API key válida."
 
+def gerar_resposta_stream(client, messages, model, temperatura):
+    """
+    Gera resposta com streaming da API Groq.
+    Retorna o texto completo ou None em caso de erro.
+    """
+    try:
+        stream = client.chat.completions.create(
+            messages=messages,
+            model=model,
+            temperature=temperatura,
+            stream=True 
+        )
+        
+        message_placeholder = st.empty()
+        full_response = ""
+
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                full_response += chunk.choices[0].delta.content
+                message_placeholder.markdown(full_response + "▌")
+        
+        message_placeholder.markdown(full_response)
+        return full_response
+    
+    except AuthenticationError:
+        st.error('Erro de Autenticação: API key inválida ou expirada.')
+        return None
+    
+    except RateLimitError:
+        st.error('Limite de requisições atingido. Aguarde alguns minutos.')
+        return None
+    
+    except APIConnectionError:
+        st.error('Falha na conexão com o servidor Groq. Verifique sua internet.')
+        return None
+    
+    except Exception as e:
+        st.error(f'Erro inesperado: {str(e)}')
+        return None
 
 # --- SIDEBAR
 with st.sidebar:
@@ -134,28 +173,16 @@ if prompt := st.chat_input("Digite sua mensagem ..."):
     }] + st.session_state.messages
 
     with st.chat_message("assistant"):
-        with st.spinner('Pensando...'):
-            try:
-                chat = client.chat.completions.create(
-                    messages=messages_payload,
-                    model=model,
-                    temperature=temperatura
-                )
-                response = chat.choices[0].message.content
-                st.markdown(response)
-                st.session_state.messages.append({
-                    'role':'assistant',
-                    'content': response
-                })
-            except AuthenticationError:
-                st.error('Erro de Autenticação, sua API key é inválida ou expirou. Verifique a chave inserida na barra lateral.')
-                st.stop()
-            except RateLimitError:
-                st.error('Você atingiu o limite de mensagens gratuitas.')
-                st.stop()
-            except APIConnectionError:
-                st.error('Falha na conexão com o servidor Groq.')
-                st.stop()
-            except Exception as e:
-                st.error(f'Erro na API: {e}')
+        response = gerar_resposta_stream(
+            client=client,
+            messages=messages_payload,
+            model=model,
+            temperatura=temperatura
+        )
+
+        if response:
+            st.session_state.messages.append({
+                'role':'assistent',
+                'content': response
+            })
             
