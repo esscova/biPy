@@ -1,8 +1,9 @@
 [project]
-name = "assistente-python"
+name = "biPy"
 version = "0.1.0"
-description = "Assistente de programação focado em python."
+description = "Assistente de programação focado em python com integração a modelos LLMs via Groq."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
     "groq>=1.0.0",
